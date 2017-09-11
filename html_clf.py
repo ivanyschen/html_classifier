@@ -2,17 +2,18 @@ from neural_net_from_scratch.L_layer_model import L_layer_model
 import pickle
 from neural_net_from_scratch.nn_toolkit import *
 from sklearn.model_selection import train_test_split
+from tf_model import tf_model
 
-XT_obj = open("data/XT_html_vs_another_letters.pkl",'rb')
+XT_obj = open("data/XT_html_vs_another.pkl",'rb')
 X_t = pickle.load(XT_obj)
 XT_obj.close()
-XF_obj = open("data/XF_html_vs_another_letters.pkl",'rb')
+XF_obj = open("data/XF_html_vs_another.pkl",'rb')
 X_f = pickle.load(XF_obj)
 XF_obj.close()
-YT_obj = open("data/YT_html_vs_another_letters.pkl",'rb')
+YT_obj = open("data/YT_html_vs_another.pkl",'rb')
 Y_t = pickle.load(YT_obj)
 YT_obj.close()
-YF_obj = open("data/YF_html_vs_another_letters.pkl",'rb')
+YF_obj = open("data/YF_html_vs_another.pkl",'rb')
 Y_f = pickle.load(YF_obj)
 YF_obj.close()
 
@@ -40,32 +41,21 @@ X_train = X_train-MU
 SIGMA_2 = ((1.0/X.shape[1])*np.sum(X_train*X_train, axis=1, keepdims=True))
 X_train = X_train/SIGMA_2
 
-layers_dims = [X.shape[0], 5, 1]
-para = L_layer_model(X_train[:, :], Y_train[:, :], layers_dims, learning_rate=0.001, num_iterations=10000000, print_cost=True, lambd=0.5)
-print ("Prediction on the training set")
-predict(X_train, Y_train, para)
+X_test = X_test - MU
+X_test = X_test/SIGMA_2
 
-# X_test = X_test - MU
-# X_test = X_test/SIGMA_2
+layer_dims = [X.shape[0], 20, 10, 5, 1]
+
+# # neural network from scratch
+# para = L_layer_model(X_train, Y_train, layer_dims, learning_rate=0.005, num_iterations=1000000, print_cost=True, lambd=0.5)
+# print ("Prediction on the training set")
+# predict(X_train, Y_train, para)
 # print ("Prediction on the test set")
 # predict(X_test, Y_test, para)
-#
-# ## data from gist
-# XT_obj = open("data/XT_html_vs_another_gist.pkl",'rb')
-# X_t_gist = pickle.load(XT_obj)
-# XT_obj.close()
-# XF_obj = open("data/XF_html_vs_another_gist.pkl",'rb')
-# X_f_gist = pickle.load(XF_obj)
-# XF_obj.close()
-# YT_obj = open("data/YT_html_vs_another_gist.pkl",'rb')
-# Y_t_gist = pickle.load(YT_obj)
-# YT_obj.close()
-# YF_obj = open("data/YF_html_vs_another_gist.pkl",'rb')
-# Y_f_gist = pickle.load(YF_obj)
-# YF_obj.close()
-# X_gist = np.concatenate((X_t_gist, X_f_gist), axis=1)
-# Y_gist = np.concatenate((Y_t_gist, Y_f_gist), axis=1)
-# X_gist = X_gist-MU
-# X_gist = X_gist/SIGMA_2
-# print ("Prediction on gist")
-# predict(X_gist, Y_gist, para)
+
+# neural network from TensorFlow
+tf_para_cpu = tf_model(X_train, Y_train, layer_dims, X_test=X_test, Y_test=Y_test, l2_lambda=0.0002, learning_rate = 0.005,
+             num_epochs=300000, print_cost=True)
+
+tf_para_gpu = tf_model(X_train, Y_train, layer_dims, X_test=X_test, Y_test=Y_test, l2_lambda=0.0002, learning_rate = 0.005,
+             num_epochs=300000, print_cost=True, device_name="gpu")
